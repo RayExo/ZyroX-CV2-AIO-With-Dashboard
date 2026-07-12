@@ -1,0 +1,65 @@
+/myenv
+dashboard/node_modules
+dashboard/.next
+
+
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+
+# Ignore build outputs
+dist/
+build/
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore Python packaging
+*.egg-info/
+.Python
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore environment variables
+.env
+.env.local
+.env.*.local
+
+# Ignore node_modules
+node_modules/
+
+# Ignore Next.js build output
+.next/
+out/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.zip
+*.rar
+
+

@@ -1,0 +1,50 @@
+import discord
+from utils.emoji import CODED, CUTE_CUTE_CUTE, GIFD, GIFN, HAPPY_PANDA, HEADMOD, HEART_EM, HEERIYE, KING, KING_ALT1, MAX__A, RACECAR64, REDHEART, SG_RD, STAR, STAR_ALT1, STAR_ALT2, ZBAN, _37496ALERT
+from discord.ext import commands
+import asyncio
+
+class React(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+        for owner in self.bot.owner_ids:
+            if f"<@{owner}>" in message.content:
+                try:
+                    if owner == 870179991462236170:
+                        
+                        emojis = [
+                            KING,
+                            f"{ZBAN} ",
+                            STAR,
+                            CUTE_CUTE_CUTE,
+                            HAPPY_PANDA,
+                            _37496ALERT,
+                            CODED,
+                            RACECAR64,
+                            GIFD,
+                            GIFN,
+                            MAX__A,
+                            HEERIYE,
+                            HEART_EM,
+                            STAR_ALT1,
+                            KING_ALT1,
+                            HEADMOD,
+                            f"{SG_RD} ",
+                            REDHEART,
+                            f" {STAR_ALT2}"
+                        ]
+                        for emoji in emojis:
+                            await message.add_reaction(emoji)
+                    else:
+                        
+                        await message.add_reaction(f"{KING},{RACECAR64},{CODED}")
+                except discord.errors.RateLimited as e:
+                    await asyncio.sleep(e.retry_after)
+                    await message.add_reaction(f"{KING},{RACECAR64},{CODED}")
+                except Exception as e:
+                    print(f"An unexpected error occurred Auto react owner mention: {e}")
