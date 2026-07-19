@@ -148,8 +148,8 @@ ZyroX-CV2-With-Dashboard/
 **1 — Clone the repo**
 
 ```bash
-git clone https://github.com/RayExo/ZyroX-CV2-With-Dashboard
-cd ZyroX-CV2-With-Dashboard/bot
+git clone https://github.com/RayExo/ZyroX-CV2-AIO-With-Dashboard
+cd ZyroX-CV2-AIO-With-Dashboard/bot
 ```
 
 **2 — Install dependencies**
