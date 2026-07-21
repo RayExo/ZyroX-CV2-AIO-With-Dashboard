@@ -1,0 +1,38 @@
+API_BASE_URL: https://api.groq.com/openai/v1/
+INTERNET_ACCESS: true 
+MAX_SEARCH_RESULTS: 4 
+ALLOW_DM: true
+SMART_MENTION: true 
+MODEL_ID: mixtral-8x7b-32768
+MAX_HISTORY: 8 
+PRESENCES_CHANGE_DELAY: 8 
+AI_NSFW_CONTENT_FILTER: true 
+LANGUAGE: en 
+DEFAULT_INSTRUCTION: soniye 
+
+Discord: https://discord.gg/codexdev
+
+TRIGGER:
+  - chatbot
+  - $
+  - soniye 
+
+AUTO_SHARDING: true
+
+DISABLE_PRESENCE: false 
+PRESENCES:
+  - How can I assist you?
+  - Currently in {guild_count} guilds
+  - Support at https://discord.gg/codexdev
+
+
+BLACKLIST_WORDS: #changed to cogs/imagine.py
+  - naked
+  - loli
+  - hentai
+  - explicit
+  - pornography
+  - adult
+  - XXX
+  - sex
+  - erotic

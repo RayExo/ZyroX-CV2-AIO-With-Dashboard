@@ -1,0 +1,24 @@
+{
+  "1419729237480575070": {
+    "guild_id": "1419729237480575070",
+    "log_channels": {
+      "message_events": 1485250610935889921
+    },
+    "log_enabled": {
+      "message_events": false,
+      "join_leave_events": false,
+      "member_moderation": false,
+      "voice_events": false,
+      "channel_events": false,
+      "role_events": false,
+      "emoji_events": true,
+      "reaction_events": true,
+      "system_events": true
+    },
+    "ignore_channels": [],
+    "ignore_roles": [],
+    "ignore_users": [],
+    "auto_delete_duration": 3600,
+    "last_updated": "2026-05-04T07:52:41.305608"
+  }
+}
