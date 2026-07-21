@@ -15,6 +15,7 @@
 from discord.ext import commands
 from discord.ui import View, Button, button
 import discord
+from utils.safe_parse import safe_math_eval
 
 
 class CalculatorView(View):
@@ -89,7 +90,7 @@ class CalculatorView(View):
             )
         try:
             expression = self.value.strip().replace("\n", "")
-            result = str(eval(expression))
+            result = safe_math_eval(expression)
             await self.update_embed(interaction, result)
             self.value = result  # Store the result for possible further calculations
         except:

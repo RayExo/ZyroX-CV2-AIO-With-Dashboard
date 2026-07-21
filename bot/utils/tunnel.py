@@ -50,10 +50,10 @@ import threading
 import subprocess
 
 # ── env vars ──────────────────────────────────────────────────────────────────
-TUNNEL_ENABLED = os.getenv("TUNNEL_ENABLED", "true").strip().lower() == "true"
+from utils.config import TUNNEL_ENABLED, TUNNEL_ALLOW_BINARY_DOWNLOAD, API_PORT
+
 CF_TUNNEL_TOKEN = os.getenv("CF_TUNNEL_TOKEN", "").strip()   # token from Cloudflare dashboard
 CF_TUNNEL_URL   = os.getenv("CF_TUNNEL_URL", "").strip()     # e.g. https://api.yourdomain.com
-API_PORT        = int(os.getenv("API_PORT", "8000"))
 
 # ── colours ───────────────────────────────────────────────────────────────────
 _CYAN   = "\033[36m"
@@ -64,30 +64,15 @@ _RESET  = "\033[0m"
 
 
 def _ensure_pycloudflared() -> bool:
-    """Install pycloudflared via pip if it's not available. Returns True on success."""
+    """Return True if pycloudflared is installed (no automatic pip install)."""
     try:
         import pycloudflared  # noqa: F401
         return True
     except ImportError:
-        pass
-
-    print(f"{_YELLOW}◈ Tunnel: pycloudflared not found — installing via pip…{_RESET}")
-    try:
-        result = subprocess.run(
-            [__import__("sys").executable, "-m", "pip", "install", "pycloudflared"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=120,
-            text=True,
+        print(
+            f"{_RED}◈ Tunnel: pycloudflared is not installed.\n"
+            f"  Install manually: pip install pycloudflared{_RESET}"
         )
-        if result.returncode == 0:
-            print(f"{_GREEN}◈ Tunnel: pycloudflared installed successfully.{_RESET}")
-            return True
-        else:
-            print(f"{_RED}◈ Tunnel: pip install failed:\n{result.stdout}{_RESET}")
-            return False
-    except Exception as exc:
-        print(f"{_RED}◈ Tunnel: could not install pycloudflared — {exc}{_RESET}")
         return False
 
 
@@ -157,8 +142,9 @@ def _get_binary() -> str | None:
     import shutil
     import stat
 
-    # ── Step 0: make sure pycloudflared is installed ──────────────────────────
-    _ensure_pycloudflared()
+    # ── Step 0: check pycloudflared is installed ─────────────────────────────
+    if not _ensure_pycloudflared():
+        return None
 
     candidates: list[str] = []
 
@@ -222,7 +208,15 @@ def _get_binary() -> str | None:
         except (OSError, subprocess.TimeoutExpired):
             continue
 
-    # ── Step 4: direct GitHub download as last resort ─────────────────────────
+    # ── Step 4: direct GitHub download (opt-in only) ─────────────────────────
+    if not TUNNEL_ALLOW_BINARY_DOWNLOAD:
+        print(
+            f"{_YELLOW}◈ Tunnel: no working binary found.\n"
+            f"  Install pycloudflared manually, or set TUNNEL_ALLOW_BINARY_DOWNLOAD=true "
+            f"to allow downloading cloudflared from GitHub.{_RESET}"
+        )
+        return None
+
     print(f"{_YELLOW}◈ Tunnel: no working binary found — attempting direct download…{_RESET}")
     direct = _download_cloudflared_direct()
     if direct and os.path.isfile(direct):
@@ -288,7 +282,7 @@ def _run_tunnel(binary: str, token: str, port: int, public_url: str) -> None:
                     announced = True
                     if public_url:
                         print(f"{_GREEN}◈ Tunnel: API is live at  {public_url}{_RESET}")
-                        print(f"{_CYAN}  ↳ NEXT_PUBLIC_API_URL = {public_url}/api/v1{_RESET}")
+                        print(f"{_CYAN}  ↳ DASHBOARD_API_URL = {public_url}/api/v1{_RESET}")
                     else:
                         print(f"{_GREEN}◈ Tunnel: connected — check CF_TUNNEL_URL in .env for your public URL{_RESET}")
 

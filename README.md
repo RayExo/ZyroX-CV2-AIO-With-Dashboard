@@ -175,8 +175,8 @@ Copy `.env.example` to `.env` and fill in the values:
 TOKEN              = your_discord_bot_token
 brand_name         = 'ZyroX'
 
-# ── Owner IDs (comma-separated) ───────────────────────────────────
-OWNER_IDS          = 870179991462236170,767979794411028491
+# ── Owner IDs (REQUIRED — your Discord user ID) ───────────────────
+OWNER_IDS          = YOUR_DISCORD_USER_ID_HERE
 
 # ── Lavalink ──────────────────────────────────────────────────────
 LAVALINK_HOST      = "your-lavalink-host"
@@ -185,21 +185,23 @@ LAVALINK_SECURE    = "true"
 LAVALINK_PORT      = ""
 
 # ── Emoji Sync ────────────────────────────────────────────────────
-EMOJI_SYNC         = "true"
+EMOJI_SYNC         = "false"
 
 # ── API / Dashboard Backend ───────────────────────────────────────
-API_ENABLED        = "true"
+API_ENABLED        = "false"
+API_HOST           = "127.0.0.1"
 API_PORT           = "8000"
 DASHBOARD_API_KEY  = "change_this_to_a_strong_secret"
+DASHBOARD_ADMIN_IDS = YOUR_DISCORD_USER_ID_HERE
 CORS_ORIGINS       = ""
 
-# ── Cloudflare Tunnel ─────────────────────────────────────────────
-TUNNEL_ENABLED     = "true"
+# ── Cloudflare Tunnel (optional) ──────────────────────────────────
+TUNNEL_ENABLED     = "false"
 CF_TUNNEL_TOKEN    = "your_tunnel_token"
 CF_TUNNEL_URL      = "https://api.yourdomain.com"
 
-# ── Webhooks ──────────────────────────────────────────────────────
-WEBHOOK_URL        = "https://discord.com/api/webhooks/..."
+# ── Webhooks (optional — leave unset to disable) ──────────────────
+# CMD_WEBHOOK_URL    = "https://discord.com/api/webhooks/ID/TOKEN"
 ```
 
 **4 — Run the bot**
@@ -224,8 +226,8 @@ npm install
 Copy `.env.example` to `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL           = https://api.yourdomain.com/api/v1
-NEXT_PUBLIC_DASHBOARD_API_KEY = your_shared_api_key
+DASHBOARD_API_URL             = http://127.0.0.1:8000/api/v1
+DASHBOARD_API_KEY             = same_secret_as_bot_DASHBOARD_API_KEY
 
 NEXTAUTH_URL                  = http://localhost:3000
 NEXTAUTH_SECRET               = a_long_random_string
@@ -233,6 +235,7 @@ NEXTAUTH_SECRET               = a_long_random_string
 DISCORD_CLIENT_ID             = your_discord_oauth_client_id
 DISCORD_CLIENT_SECRET         = your_discord_oauth_client_secret
 
+ADMIN_IDS                     = your_discord_user_id
 NEXT_PUBLIC_ADMIN_IDS         = your_discord_user_id
 NEXT_PUBLIC_BRAND_NAME        = "ZyroX"
 NEXT_PUBLIC_BRAND_NAME_WORD   = "ZX"
@@ -255,34 +258,41 @@ Open [http://localhost:3000](http://localhost:3000)
 | Variable | Default | Description |
 |---|---|---|
 | `TOKEN` | — | Discord bot token |
-| `OWNER_IDS` | — | Comma-separated owner Discord user IDs |
+| `OWNER_IDS` | _(required)_ | Comma-separated owner Discord user IDs — **must be your own ID** |
 | `LAVALINK_HOST` | — | Lavalink server hostname (no protocol) |
 | `LAVALINK_PASSWORD` | — | Lavalink password |
 | `LAVALINK_SECURE` | `true` | `true` = HTTPS, `false` = HTTP |
 | `LAVALINK_PORT` | _(empty)_ | Port — only needed when `LAVALINK_SECURE=false` |
-| `EMOJI_SYNC` | `true` | Run application emoji sync on startup |
-| `API_ENABLED` | `true` | Start the FastAPI dashboard backend |
+| `EMOJI_SYNC` | `false` | Run application emoji sync on startup |
+| `JISHAKU_ENABLED` | `false` | Enable owner debug REPL (disable in production) |
+| `API_ENABLED` | `false` | Start the FastAPI dashboard backend |
+| `API_HOST` | `127.0.0.1` | Bind address — use `127.0.0.1` unless behind a reverse proxy |
 | `API_PORT` | `8000` | Port the backend listens on |
-| `DASHBOARD_API_KEY` | — | Shared secret between bot API and dashboard |
+| `DASHBOARD_API_KEY` | — | Shared secret between bot API and dashboard (server-side only) |
+| `DASHBOARD_ADMIN_IDS` | — | Discord user IDs allowed to use admin API routes |
 | `CORS_ORIGINS` | _(empty)_ | Extra CORS-allowed origins, comma-separated |
-| `WEBHOOK_URL` | — | Discord webhook for command logs |
-| `TUNNEL_ENABLED` | `true` | Expose the API over HTTPS via Cloudflare Tunnel |
+| `CMD_WEBHOOK_URL` | _(empty)_ | Optional Discord webhook for command logging |
+| `TUNNEL_ENABLED` | `false` | Expose the API over HTTPS via Cloudflare Tunnel |
 | `CF_TUNNEL_TOKEN` | — | Token from Cloudflare Zero Trust dashboard |
 | `CF_TUNNEL_URL` | — | Your permanent public URL (e.g. `https://api.yourdomain.com`) |
+| `LOG_CHANNEL_ID` | _(empty)_ | Optional channel for join/leave logs |
 
 ### Dashboard — `dashboard/.env.local`
 
 | Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_API_URL` | Full URL to the bot's FastAPI backend — use Cloudflare Tunnel URL |
-| `NEXT_PUBLIC_DASHBOARD_API_KEY` | Must match `DASHBOARD_API_KEY` in the bot |
+| `DASHBOARD_API_URL` | Bot API URL (server-side, e.g. `http://127.0.0.1:8000/api/v1`) |
+| `DASHBOARD_API_KEY` | Must match `DASHBOARD_API_KEY` in the bot — **never use NEXT_PUBLIC_** |
 | `NEXTAUTH_URL` | Your dashboard's public URL |
 | `NEXTAUTH_SECRET` | Random secret for NextAuth session signing |
 | `DISCORD_CLIENT_ID` | Discord OAuth2 client ID |
 | `DISCORD_CLIENT_SECRET` | Discord OAuth2 client secret |
-| `NEXT_PUBLIC_ADMIN_IDS` | Comma-separated Discord user IDs with admin access |
+| `ADMIN_IDS` | Comma-separated Discord user IDs with admin panel access (server-side) |
+| `NEXT_PUBLIC_ADMIN_IDS` | Same IDs for client-side admin UI visibility |
 | `NEXT_PUBLIC_BRAND_NAME` | Bot name shown in the dashboard UI |
 | `NEXT_PUBLIC_BRAND_NAME_WORD` | Short abbreviation shown in the dashboard |
+
+> **API security:** Guild routes require a valid Discord OAuth token with Manage Server permission. The dashboard forwards this automatically via `/api/proxy`.
 
 ---
 
@@ -376,7 +386,9 @@ Runs automatically on startup when `EMOJI_SYNC=true`:
 | Bot fails to start | Check `TOKEN` is set and bot has correct gateway intents |
 | Music not working | Verify `LAVALINK_HOST`, `LAVALINK_SECURE`, and `LAVALINK_PORT` |
 | Dashboard auth error | Check Discord OAuth client ID/secret and redirect URI |
-| Dashboard can't load data | Confirm `API_ENABLED=true`, bot is running, `NEXT_PUBLIC_API_URL` is correct |
+| Dashboard can't load data | Confirm `API_ENABLED=true`, bot running, `DASHBOARD_API_URL` correct, user logged in via Discord |
+| API 403 on guild routes | User needs Manage Server or Admin permission on that Discord server |
+| API key rejected (401) | `DASHBOARD_API_KEY` must exactly match in bot and dashboard `.env` |
 | Emojis showing as plain text | Run with `EMOJI_SYNC=true` once to upload and patch IDs |
 | CORS errors from dashboard | Add your Vercel URL to `CORS_ORIGINS` in `bot/.env` |
 | Tunnel not starting | Check `CF_TUNNEL_TOKEN` is valid and `pycloudflared` is installed |

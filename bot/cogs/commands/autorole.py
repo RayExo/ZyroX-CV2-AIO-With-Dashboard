@@ -23,6 +23,7 @@ from discord.ui import LayoutView, TextDisplay, Separator, Container
 from utils.Tools import *
 from utils.cv2 import CV2, build_container
 from utils.config import OWNER_IDS
+from utils.safe_parse import parse_role_id_list, dump_role_id_list
 
 
 
@@ -232,7 +233,7 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
         
         if data:
-            humans = eval(data[0])
+            humans = parse_role_id_list(data[0])
             if role.id in humans:
                 view = CV2(f"{ICONS_WARNING} Access Denied", f"{role.mention} is already in human autoroles.")
             elif len(humans) >= 10:
@@ -240,13 +241,13 @@ class AutoRole(commands.Cog):
             else:
                 humans.append(role.id)
                 async with aiosqlite.connect(DATABASE_PATH) as db:
-                    await db.execute("UPDATE autorole SET humans = ? WHERE guild_id = ?", (str(humans), ctx.guild.id))
+                    await db.execute("UPDATE autorole SET humans = ? WHERE guild_id = ?", (dump_role_id_list(humans), ctx.guild.id))
                     await db.commit()
                 view = CV2(f"{TICK} Success", f"{role.mention} has been added to human autoroles.")
         else:
             humans = [role.id]
             async with aiosqlite.connect(DATABASE_PATH) as db:
-                await db.execute("INSERT INTO autorole (guild_id, humans, bots) VALUES (?, ?, ?)", (ctx.guild.id, str(humans), '[]'))
+                await db.execute("INSERT INTO autorole (guild_id, humans, bots) VALUES (?, ?, ?)", (ctx.guild.id, dump_role_id_list(humans), '[]'))
                 await db.commit()
             view = CV2(f"{TICK} Success", f"{role.mention} has been added to human autoroles.")
 
@@ -265,13 +266,13 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
 
         if data:
-            humans = eval(data[0])
+            humans = parse_role_id_list(data[0])
             if role.id not in humans:
                 view = CV2(f"{CROSS} Error", f"{role.mention} is not in human autoroles.")
             else:
                 humans.remove(role.id)
                 async with aiosqlite.connect(DATABASE_PATH) as db:
-                    await db.execute("UPDATE autorole SET humans = ? WHERE guild_id = ?", (str(humans), ctx.guild.id))
+                    await db.execute("UPDATE autorole SET humans = ? WHERE guild_id = ?", (dump_role_id_list(humans), ctx.guild.id))
                     await db.commit()
                 view = CV2(f"{TICK} Success", f"{role.mention} has been removed from human autoroles.")
         else:
@@ -303,7 +304,7 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
         
         if data:
-            bots = eval(data[0])
+            bots = parse_role_id_list(data[0])
             if role.id in bots:
                 view = CV2(f"{ICONS_WARNING} Access Denied", f"{role.mention} is already in bot autoroles.")
             elif len(bots) >= 10:
@@ -311,13 +312,13 @@ class AutoRole(commands.Cog):
             else:
                 bots.append(role.id)
                 async with aiosqlite.connect(DATABASE_PATH) as db:
-                    await db.execute("UPDATE autorole SET bots = ? WHERE guild_id = ?", (str(bots), ctx.guild.id))
+                    await db.execute("UPDATE autorole SET bots = ? WHERE guild_id = ?", (dump_role_id_list(bots), ctx.guild.id))
                     await db.commit()
                 view = CV2(f"{TICK} Success", f"{role.mention} has been added to bot autoroles.")
         else:
             bots = [role.id]
             async with aiosqlite.connect(DATABASE_PATH) as db:
-                await db.execute("INSERT INTO autorole (guild_id, humans, bots) VALUES (?, ?, ?)", (ctx.guild.id, '[]', str(bots)))
+                await db.execute("INSERT INTO autorole (guild_id, humans, bots) VALUES (?, ?, ?)", (ctx.guild.id, '[]', dump_role_id_list(bots)))
                 await db.commit()
             view = CV2(f"{TICK} Success", f"{role.mention} has been added to bot autoroles.")
 
@@ -336,13 +337,13 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
 
         if data:
-            bots = eval(data[0])
+            bots = parse_role_id_list(data[0])
             if role.id not in bots:
                 view = CV2(f"{CROSS} Error", f"{role.mention} is not in bot autoroles.")
             else:
                 bots.remove(role.id)
                 async with aiosqlite.connect(DATABASE_PATH) as db:
-                    await db.execute("UPDATE autorole SET bots = ? WHERE guild_id = ?", (str(bots), ctx.guild.id))
+                    await db.execute("UPDATE autorole SET bots = ? WHERE guild_id = ?", (dump_role_id_list(bots), ctx.guild.id))
                     await db.commit()
                 view = CV2(f"{TICK} Success", f"{role.mention} has been removed from bot autoroles.")
         else:

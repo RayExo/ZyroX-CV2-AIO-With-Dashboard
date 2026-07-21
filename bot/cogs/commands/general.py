@@ -38,11 +38,6 @@ from typing import *
 import string
 from utils.cv2 import CV2, build_container
 
-lawda = [
-  '8', '3821', '23', '21', '313', '43', '29', '76', '11', '9',
-  '44', '470', '318' , '26', '69'
-]
-
 
 class AvatarView(View):
   def __init__(self, user, member, author_id, banner_url):
@@ -214,55 +209,6 @@ class General(commands.Cog):
     await msg.add_reaction(CROSS)
 
 
-  @commands.command(name="hack",
-    help="hack someone's discord account",
-    usage="Hack <member>")
-  @blacklist_check()
-  @ignore_check()
-  @commands.cooldown(1, 3, commands.BucketType.user)
-  async def hack(self, ctx: commands.Context, member: discord.Member):
-    stringi = member.name
-    min_length = 2
-    max_length = 12
-    length = random.randint(min_length, max_length)
-    stringg = member.name
-    remaining_length = length - len(stringg)
-    all_chars = string.ascii_letters + string.digits + string.punctuation
-    random_chars = random.choices(all_chars, k=remaining_length)
-
-    password = stringg + ''.join(random_chars)
-
-    lund = await ctx.send(f"Processing to Hack {member.mention}...")
-    await asyncio.sleep(2)
-    random_pass = random.choice(lawda)
-
-    random_pass2 = ''.join(random.choices(string.ascii_letters + string.digits, k=3))
-    hack_text = (
-        f"**User:** {member.mention}\n"
-        f"**E-Mail:** {''.join(c for c in stringi if c.isalnum())}{random_pass}@gmail.com\n"
-        f"**Account Password:** {member.name}@{random_pass2}"
-    )
-    await ctx.send(view=CV2(f"Hacked {member.display_name}!", hack_text))
-    await lund.delete()
-
-
-  @commands.command(name="token", usage="Token <member>")
-  @blacklist_check()
-  @ignore_check()
-  @commands.cooldown(1, 2, commands.BucketType.user)
-  async def token(self, ctx: commands.Context, user: discord.Member = None):
-    list = [
-      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
-      "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_"
-      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-      'ñ', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0',
-      '1', '2', '3', '4', '5', '6', '7', '8', '9'
-    ]
-    token = random.choices(list, k=59)
-    if user is None:
-      user = ctx.author
-    await ctx.send(view=CV2("🔐 Token", f"{user.mention}'s token: `{''.join(token)}`"))
-
   @commands.command(name="users", help=f"checks total users of {BotName}.")
   @blacklist_check()
   @ignore_check()
@@ -272,34 +218,6 @@ class General(commands.Cog):
                 if g.member_count != None)
     guilds = len(self.bot.guilds)
     await ctx.send(view=CV2(f"{BotName} Users", f"❯ Total of __**{users}**__ Users in **{guilds}** Guilds"))
-
-
-  @commands.command(name="wizz", usage="Wizz")
-  @blacklist_check()
-  @ignore_check()
-  @commands.cooldown(1, 3, commands.BucketType.user)
-  async def wizz(self, ctx: commands.Context):
-    message6 = await ctx.send(
-      f"`Wizzing {ctx.guild.name}, will take 22 seconds to complete`")
-    message7 = await ctx.send(f"Changing all guild settings...")
-    message5 = await ctx.send(f"Deleting **{len(ctx.guild.roles)}** Roles...")
-    await asyncio.sleep(1)
-    message4 = await ctx.send(
-      f"Deleting **{len(ctx.guild.channels)}** Channels...")
-    await asyncio.sleep(1)
-    message3 = await ctx.send(f"Deleting Webhooks...")
-    message2 = await ctx.send(f"Deleting emojis")
-    await asyncio.sleep(1)
-    message1 = await ctx.send(f"Installing Ban Wave..")
-    await asyncio.sleep(1)
-    await message6.delete()
-    await message7.delete()
-    await message5.delete()
-    await message4.delete()
-    await message3.delete()
-    await message2.delete()
-    await message1.delete()
-    await ctx.send(view=CV2(f"{self.bot.user.name}", f"**{ZWARNING} Successfully Wizzed {ctx.guild.name}**"))
 
 
   @commands.hybrid_command(

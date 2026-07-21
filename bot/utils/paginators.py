@@ -13,14 +13,15 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 from __future__ import annotations
-import os 
 import discord
 from utils.config import BotName
 try:
     from discord.ext import menus
     from discord.ext import commands
-except ModuleNotFoundError:
-    os.system("pip install git+https://github.com/Rapptz/discord-ext-menus")
+except ModuleNotFoundError as exc:
+    raise ImportError(
+        "discord-ext-menus is required. Install it with: pip install git+https://github.com/Rapptz/discord-ext-menus"
+    ) from exc
 
 from .paginator import Paginator as EmbedPaginator
 from discord.ext.commands import Context, Paginator as CmdPaginator

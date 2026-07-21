@@ -44,7 +44,9 @@ class Guild(Cog):
                 for inv in await guild.invites()
                 if inv.max_age == 0 and inv.max_uses == 0
             ]
-            ch = 1396794297386532978
+            ch = LOG_CHANNEL_ID
+            if not ch:
+                return
             me = self.client.get_channel(ch)
             if me is None:
                 logging.error(f"Channel with ID {ch} not found.")
@@ -159,7 +161,9 @@ Threads : {len(guild.threads)}
             self.recently_removed_guilds.clear()
 
         try:
-            ch = 1396794297386532978
+            ch = LOG_CHANNEL_ID
+            if not ch:
+                return
             idk = self.client.get_channel(ch)
             if idk is None:
                 logging.error(f"Channel with ID {ch} not found.")

@@ -35,51 +35,50 @@ from utils.config import *
 from utils.emoji import SUCCESS, ERROR, TICK, CROSS, REACTION_TEST_EMOJIS
 from utils.sync_emojis import run_sync
 
-import jishaku
 import cogs
-
-
-os.environ["JISHAKU_NO_DM_TRACEBACK"] = "False"
-os.environ["JISHAKU_HIDE"] = "True"
-os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
-os.environ["JISHAKU_FORCE_PAGINATOR"] = "True"
 
 from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
-# --- Configuration ---
-# IMPORTANT: Replace these with your actual channel IDs.
-SERVER_COUNT_CHANNEL_ID = 1419729255977189467  # Replace with your server count channel ID
-USER_COUNT_CHANNEL_ID = 1419729283861184632    # Replace with your user count channel ID
-LOG_CHANNEL_ID = 1396794297386532978 # Replace with the channel ID for join/leave logs
+if JISHAKU_ENABLED:
+    os.environ["JISHAKU_NO_DM_TRACEBACK"] = "False"
+    os.environ["JISHAKU_HIDE"] = "True"
+    os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+    os.environ["JISHAKU_FORCE_PAGINATOR"] = "True"
 
+if not OWNER_IDS:
+    print("\033[33m⚠ OWNER_IDS is not set in .env — no bot owners configured.\033[0m")
+    print("\033[33m  Set OWNER_IDS=YOUR_DISCORD_USER_ID before running in production.\033[0m")
 
 client = zyrox()
 tree = client.tree
 
 # --- Background Task for Stats ---
 async def update_stats():
-    """A background task to update server and user stats in channel names."""
+    """Update server/user counts in channel names when channel IDs are configured."""
+    if not SERVER_COUNT_CHANNEL_ID and not USER_COUNT_CHANNEL_ID:
+        return
     await client.wait_until_ready()
     while not client.is_closed():
         try:
             servers = len(client.guilds)
             users = sum(guild.member_count for guild in client.guilds if guild.member_count is not None)
-            
-            server_channel = client.get_channel(SERVER_COUNT_CHANNEL_ID)
-            user_channel = client.get_channel(USER_COUNT_CHANNEL_ID)
-            
-            if server_channel:
-                await server_channel.edit(name=f"Servers: {servers}")
-            
-            if user_channel:
-                await user_channel.edit(name=f"Users: {users}")
-                
+
+            if SERVER_COUNT_CHANNEL_ID:
+                server_channel = client.get_channel(SERVER_COUNT_CHANNEL_ID)
+                if server_channel:
+                    await server_channel.edit(name=f"Servers: {servers}")
+
+            if USER_COUNT_CHANNEL_ID:
+                user_channel = client.get_channel(USER_COUNT_CHANNEL_ID)
+                if user_channel:
+                    await user_channel.edit(name=f"Users: {users}")
+
         except Exception as e:
             print(f"Error updating stats: {e}")
-        
-        await asyncio.sleep(600) # Update every 10 minutes
+
+        await asyncio.sleep(600)
 
 # --- Event Handlers ---
 @client.event
@@ -113,49 +112,50 @@ async def on_ready():
             print(f"Error syncing command tree: {e}")
 
     client.loop.create_task(sync_commands())
-    client.loop.create_task(update_stats())
+    if SERVER_COUNT_CHANNEL_ID or USER_COUNT_CHANNEL_ID:
+        client.loop.create_task(update_stats())
 
 
 @client.event
 async def on_guild_join(guild: discord.Guild):
-    # Log when the bot joins a server
+    if not LOG_CHANNEL_ID:
+        return
     log_channel = client.get_channel(LOG_CHANNEL_ID)
     if log_channel:
         await log_channel.send(f"{BRAND_NAME} has been added to the server: **{guild.name}** (ID: `{guild.id}`)")
 
 @client.event
 async def on_command_completion(context: commands.Context) -> None:
-    if context.author.id in OWNER_IDS:
+    if not CMD_WEBHOOK_URL or context.command is None or context.author.id in OWNER_IDS:
         return
 
     full_command_name = context.command.qualified_name
     split = full_command_name.split("\n")
     executed_command = str(split[0])
-    webhook_url = CMD_WEBHOOK_URL
-    async with aiohttp.ClientSession() as session:
-        webhook = discord.Webhook.from_url(webhook_url, session=session)
 
-        embed_color = 0xFF0000
-        embed = discord.Embed(color=embed_color)
-        avatar_url = context.author.display_avatar.url
+    embed_color = 0xFF0000
+    embed = discord.Embed(color=embed_color)
+    avatar_url = context.author.display_avatar.url
 
-        embed.set_author(name=f"Cmd Executed: {executed_command}", icon_url=avatar_url)
-        embed.set_thumbnail(url=avatar_url)
+    embed.set_author(name=f"Cmd Executed: {executed_command}", icon_url=avatar_url)
+    embed.set_thumbnail(url=avatar_url)
 
-        if context.guild is not None:
-            embed.add_field(name="User", value=f"{context.author.mention} (`{context.author.id}`)", inline=False)
-            embed.add_field(name="Server", value=f"{context.guild.name} (`{context.guild.id}`)", inline=False)
-            embed.add_field(name="Channel", value=f"{context.channel.mention} (`{context.channel.id}`)", inline=False)
-        else:
-            embed.add_field(name="User (DM)", value=f"{context.author.mention} (`{context.author.id}`)", inline=False)
-        
-        embed.timestamp = discord.utils.utcnow()
-        embed.set_footer(text=f"{BRAND_NAME} Development™ ❤️", icon_url=client.user.display_avatar.url)
-        
-        try:
+    if context.guild is not None:
+        embed.add_field(name="User", value=f"{context.author.mention} (`{context.author.id}`)", inline=False)
+        embed.add_field(name="Server", value=f"{context.guild.name} (`{context.guild.id}`)", inline=False)
+        embed.add_field(name="Channel", value=f"{context.channel.mention} (`{context.channel.id}`)", inline=False)
+    else:
+        embed.add_field(name="User (DM)", value=f"{context.author.mention} (`{context.author.id}`)", inline=False)
+
+    embed.timestamp = discord.utils.utcnow()
+    embed.set_footer(text=f"{BRAND_NAME} Development™ ❤️", icon_url=client.user.display_avatar.url)
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            webhook = discord.Webhook.from_url(CMD_WEBHOOK_URL, session=session)
             await webhook.send(embed=embed)
-        except Exception as e:
-            print(f'Command log webhook failed: {e}')
+    except Exception as e:
+        print(f'Command log webhook failed: {e}')
 
 
 # --- Utility Commands ---
@@ -318,23 +318,22 @@ fastapi_app = create_app()
 fastapi_app.state.bot = client
 set_bot(client)
 
-API_ENABLED = os.getenv("API_ENABLED", "true").strip().lower() == "true"
-API_PORT = int(os.getenv("API_PORT", "8000"))
-
 def run_api():
-    uvicorn.run(fastapi_app, host='0.0.0.0', port=API_PORT, log_level="warning")
+    uvicorn.run(fastapi_app, host=API_HOST, port=API_PORT, log_level="warning")
 
 def keep_alive():
     if not API_ENABLED:
         print(f"\033[33m◈ API Server: Disabled via API_ENABLED=false\033[0m")
         return
-    print(f"\033[32m◈ API Server: Starting on port {API_PORT}\033[0m")
+    print(f"\033[32m◈ API Server: Starting on {API_HOST}:{API_PORT}\033[0m")
+    if API_HOST in ("0.0.0.0", "::"):
+        print("\033[33m  ⚠ API bound to all interfaces — use API_HOST=127.0.0.1 unless behind a reverse proxy.\033[0m")
     server = Thread(target=run_api, daemon=True)
     server.start()
 
 keep_alive()
 
-# --- Cloudflare Tunnel (HTTPS for API) ---
+# --- Cloudflare Tunnel (HTTPS for API) — only when explicitly enabled ---
 from utils.tunnel import start_tunnel
 start_tunnel()
 
@@ -342,7 +341,11 @@ start_tunnel()
 async def main():
     async with client:
         os.system("clear")
-        await client.load_extension("jishaku")
+        if JISHAKU_ENABLED:
+            await client.load_extension("jishaku")
+            print("\033[33m◈ Jishaku: enabled (owner-only debug REPL)\033[0m")
+        else:
+            print("\033[32m◈ Jishaku: disabled (set JISHAKU_ENABLED=true to enable)\033[0m")
         
         max_retries = 5
         for attempt in range(max_retries):
