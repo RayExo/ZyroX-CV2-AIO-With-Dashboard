@@ -14,6 +14,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from api.dependencies import get_bot, limiter
+from api.discord_auth import require_discord_session, get_manageable_guild_ids
 from api.db_manager import db_manager
 from api.schemas import (
     GuildSummary, GuildDetails, PrefixConfig, AutomodConfig, 
@@ -41,13 +42,18 @@ if TYPE_CHECKING:
 router = APIRouter()
 
 
-@router.get("/", response_model=List[GuildSummary], summary="List all guilds", description="Returns a summary of all guilds the bot is currently in.")
-async def list_guilds(bot: "zyrox" = Depends(get_bot)):
+@router.get("/", response_model=List[GuildSummary], summary="List all guilds", description="Returns guilds the authenticated user can manage that the bot is in.")
+async def list_guilds(request: Request, bot: "zyrox" = Depends(get_bot)):
     """
-    Lists detailed information about all guilds the bot is currently in.
+    Lists guilds the bot is in, filtered to those the caller can manage on Discord.
     """
+    token, _ = await require_discord_session(request)
+    manageable_ids = await get_manageable_guild_ids(token)
+
     guilds_list = []
     for guild in bot.guilds:
+        if str(guild.id) not in manageable_ids:
+            continue
         guilds_list.append(GuildSummary(
             id=str(guild.id),
             name=guild.name,

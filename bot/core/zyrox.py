@@ -16,9 +16,6 @@ from __future__ import annotations
 from discord.ext import commands, tasks
 import discord
 import aiohttp
-import json
-import jishaku
-import asyncio
 import typing
 from typing import List
 import aiosqlite

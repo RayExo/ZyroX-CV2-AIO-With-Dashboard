@@ -23,6 +23,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function isAdmin(userId?: string | null) {
   if (!userId) return false;
-  const adminIds = (process.env.NEXT_PUBLIC_ADMIN_IDS || "").split(",");
+  const adminIds = [
+    ...(process.env.ADMIN_IDS || "").split(","),
+    ...(process.env.NEXT_PUBLIC_ADMIN_IDS || "").split(","),
+  ]
+    .map((id) => id.trim())
+    .filter(Boolean);
   return adminIds.includes(userId);
 }

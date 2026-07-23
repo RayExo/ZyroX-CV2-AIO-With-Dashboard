@@ -128,7 +128,7 @@ class TimeSelect(Select):
                 if role:
                     await member.add_roles(role, reason="No prefix added")
 
-        log_channel = interaction.client.get_channel(1396794297386532978)
+        log_channel = interaction.client.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID else None
         if log_channel:
             embed = CV2Embed(
                 title="User Added to No Prefix",
@@ -140,7 +140,7 @@ class TimeSelect(Select):
                 if self.user.avatar
                 else self.user.default_avatar.url
             )
-            await log_channel.send("<#1396794297386532978>", view=embed)
+            await log_channel.send(view=embed)
 
         embed = CV2Embed(
             description=f"**Added Global No Prefix**:\n{ZHUMAN} User: **{self.user.mention}**\n{MENTION} User Mention: {self.user.mention}\n{ZYROXSYS} User ID: {self.user.id}\n\n__**Additional Info**__:\n{ZYROXHAMMER} Added By: **{self.author.display_name}**\n{TIME} Expiry Time: {expiry_text}\n{BOOST} Timestamp: {expiry_timestamp}",
@@ -233,7 +233,7 @@ class NoPrefix(commands.Cog):
                 for user_id in expired_users:
                     user = self.client.get_user(user_id)
                     if user:
-                        log_channel = self.client.get_channel(1396794297386532978)
+                        log_channel = self.client.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID else None
                         if log_channel:
                             embed_log = CV2Embed(
                                 title="No Prefix Expired",
@@ -251,9 +251,7 @@ class NoPrefix(commands.Cog):
                                 else user.default_avatar.url
                             )
                             embed_log.set_footer(text="No Prefix Removal Log")
-                            await log_channel.send(
-                                "<#1396794297386532978>", view=embed_log
-                            )
+                            await log_channel.send(view=embed_log)
                         bot = self.client
                         guild = bot.get_guild(1401125905677553716)
                         if guild:
@@ -402,7 +400,7 @@ class NoPrefix(commands.Cog):
         embed.set_author(name="Removed No Prefix")
         await ctx.reply(view=embed)
 
-        log_channel = ctx.bot.get_channel(1396794297386532978)
+        log_channel = ctx.bot.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID else None
         if log_channel:
             embed_log = CV2Embed(
                 title="No Prefix Removed",
@@ -694,7 +692,7 @@ class NoPrefix(commands.Cog):
             await interaction.response.edit_message(view=success_embed)
 
             # Log the action
-            log_channel = self.client.get_channel(1396794297386532978)
+            log_channel = self.client.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID else None
             if log_channel:
                 log_embed = CV2Embed(
                     title="No-Prefix List Reset",
@@ -702,7 +700,7 @@ class NoPrefix(commands.Cog):
                     color=0xFF0000,
                 )
                 log_embed.set_footer(text="No Prefix Reset Log")
-                await log_channel.send("<#1396794297386532978>", view=log_embed)
+                await log_channel.send(view=log_embed)
 
         async def no_callback(interaction):
             if interaction.user != ctx.author:

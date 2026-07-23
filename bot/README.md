@@ -180,8 +180,8 @@ Create a `.env` file (copy from `.env.example`):
 TOKEN              = your_discord_bot_token
 brand_name         = 'ZyroX'
 
-# ── Owner IDs (comma-separated — no code changes needed) ──────────
-OWNER_IDS          = 870179991462236170,767979794411028491
+# ── Owner IDs (REQUIRED — your Discord user ID) ───────────────────
+OWNER_IDS          = YOUR_DISCORD_USER_ID_HERE
 
 # ── Lavalink ──────────────────────────────────────────────────────
 LAVALINK_HOST      = "your-lavalink-host"
@@ -190,21 +190,23 @@ LAVALINK_SECURE    = "true"
 LAVALINK_PORT      = ""
 
 # ── Emoji Sync ────────────────────────────────────────────────────
-EMOJI_SYNC         = "true"
+EMOJI_SYNC         = "false"
 
 # ── API / Dashboard Backend ───────────────────────────────────────
-API_ENABLED        = "true"
+API_ENABLED        = "false"
+API_HOST           = "127.0.0.1"
 API_PORT           = "8000"
 DASHBOARD_API_KEY  = "change_this_to_a_strong_secret"
+DASHBOARD_ADMIN_IDS = YOUR_DISCORD_USER_ID_HERE
 CORS_ORIGINS       = ""
 
-# ── Cloudflare Tunnel ─────────────────────────────────────────────
-TUNNEL_ENABLED     = "true"
+# ── Cloudflare Tunnel (optional) ──────────────────────────────────
+TUNNEL_ENABLED     = "false"
 CF_TUNNEL_TOKEN    = "your_tunnel_token"
 CF_TUNNEL_URL      = "https://api.yourdomain.com"
 
-# ── Webhooks ──────────────────────────────────────────────────────
-WEBHOOK_URL        = "https://discord.com/api/webhooks/..."
+# ── Webhooks (optional) ─────────────────────────────────────────────
+# CMD_WEBHOOK_URL    = "https://discord.com/api/webhooks/ID/TOKEN"
 ```
 
 ### 3 — Run
@@ -220,20 +222,26 @@ python CodeX.py
 | Variable | Default | Description |
 |---|---|---|
 | `TOKEN` | — | Discord bot token |
-| `OWNER_IDS` | — | Comma-separated owner Discord user IDs |
+| `OWNER_IDS` | _(required)_ | Comma-separated owner Discord user IDs — **your own ID only** |
 | `LAVALINK_HOST` | — | Lavalink server hostname (no protocol) |
 | `LAVALINK_PASSWORD` | — | Lavalink password |
 | `LAVALINK_SECURE` | `true` | `true` = HTTPS, `false` = HTTP |
 | `LAVALINK_PORT` | _(empty)_ | Port — only when `LAVALINK_SECURE=false` |
-| `EMOJI_SYNC` | `true` | Auto-sync application emojis on startup |
-| `API_ENABLED` | `true` | Start the FastAPI dashboard backend |
+| `EMOJI_SYNC` | `false` | Auto-sync application emojis on startup |
+| `JISHAKU_ENABLED` | `false` | Enable owner debug REPL (disable in production) |
+| `API_ENABLED` | `false` | Start the FastAPI dashboard backend |
+| `API_HOST` | `127.0.0.1` | Bind address for the API server |
 | `API_PORT` | `8000` | Port the backend listens on |
-| `DASHBOARD_API_KEY` | — | Shared secret between bot API and dashboard |
+| `DASHBOARD_API_KEY` | — | Shared secret with dashboard (server-side only) |
+| `DASHBOARD_ADMIN_IDS` | — | Discord user IDs for admin API routes |
 | `CORS_ORIGINS` | _(empty)_ | Extra CORS-allowed origins, comma-separated |
-| `WEBHOOK_URL` | — | Discord webhook for command logs |
-| `TUNNEL_ENABLED` | `true` | Expose API over HTTPS via Cloudflare Tunnel |
+| `CMD_WEBHOOK_URL` | _(empty)_ | Optional webhook for command logging |
+| `TUNNEL_ENABLED` | `false` | Expose API over HTTPS via Cloudflare Tunnel |
 | `CF_TUNNEL_TOKEN` | — | Token from Cloudflare Zero Trust dashboard |
 | `CF_TUNNEL_URL` | — | Your permanent public URL |
+| `LOG_CHANNEL_ID` | _(empty)_ | Optional channel for join/leave logs |
+
+> **API security:** All `/api/v1/guilds/*` routes verify Discord Manage Server permission via `X-Discord-Access-Token` header.
 
 ---
 
@@ -271,7 +279,7 @@ On every startup the console prints:
 ```
 ◈ Tunnel: cloudflared binary ready — starting tunnel on port 8000…
 ◈ Tunnel: API is live at  https://api.yourdomain.com
-  ↳ NEXT_PUBLIC_API_URL = https://api.yourdomain.com/api/v1
+  ↳ DASHBOARD_API_URL = https://api.yourdomain.com/api/v1
 ```
 
 Set `TUNNEL_ENABLED=false` to disable.
@@ -313,7 +321,7 @@ python CodeX.py
 |---|---|
 | Bot fails to start | Check `TOKEN` and gateway intents in Developer Portal |
 | Music not working | Verify `LAVALINK_HOST`, `LAVALINK_SECURE`, `LAVALINK_PORT` |
-| Dashboard can't reach API | Check `API_ENABLED=true` and `NEXT_PUBLIC_API_URL` in dashboard |
+| Dashboard can't reach API | Check `API_ENABLED=true`, `DASHBOARD_API_URL` in dashboard, and Discord login |
 | CORS errors | Add your Vercel URL to `CORS_ORIGINS` in `.env` |
 | Emojis showing as plain text | Run once with `EMOJI_SYNC=true` to upload and patch IDs |
 | Tunnel not starting | Check `CF_TUNNEL_TOKEN` is valid and `pycloudflared` is installed |

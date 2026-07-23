@@ -12,7 +12,7 @@
 # ║                                                                  ║
 # ╚══════════════════════════════════════════════════════════════════╝
 
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
@@ -28,6 +28,13 @@ from utils.config import *
 from api.routes import bot, guilds, admin
 from api.dependencies import verify_api_key, limiter
 from api.db_manager import db_manager
+from api.discord_auth import (
+    require_dashboard_admin,
+    require_discord_session,
+    require_guild_access,
+    extract_guild_id_from_path,
+)
+from fastapi.responses import JSONResponse
 
 # Configure logging
 logger = logging.getLogger("api_request_logs")
@@ -56,6 +63,29 @@ def create_app() -> FastAPI:
         dependencies=[Depends(verify_api_key)],
         lifespan=lifespan
     )
+
+    # Discord permission checks for dashboard API routes
+    @app.middleware("http")
+    async def discord_permission_middleware(request: Request, call_next):
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
+        path = request.url.path
+        try:
+            if path.startswith("/api/v1/admin"):
+                await require_dashboard_admin(request)
+            elif path.startswith("/api/v1/bot"):
+                await require_discord_session(request)
+            elif path.startswith("/api/v1/guilds"):
+                guild_id = extract_guild_id_from_path(path)
+                if guild_id is not None:
+                    await require_guild_access(request, guild_id)
+                else:
+                    await require_discord_session(request)
+        except HTTPException as exc:
+            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+        return await call_next(request)
 
     # Structured Logging Middleware
     @app.middleware("http")

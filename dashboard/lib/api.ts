@@ -38,8 +38,14 @@ import {
   AdminConfigUpdate
 } from "@/types/api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY;
+const isServer = typeof window === "undefined";
+
+/** Server: direct bot API with secret key. Browser: same-origin proxy route. */
+const BASE_URL = isServer
+  ? (process.env.DASHBOARD_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://127.0.0.1:8000/api/v1")
+  : "/api/proxy";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -55,8 +61,20 @@ async function request<T>(
   const url = `${BASE_URL}${endpoint}`;
   
   const headers = new Headers(options.headers);
-  if (API_KEY) {
-    headers.set("Authorization", `Bearer ${API_KEY}`);
+  if (isServer) {
+    const apiKey = process.env.DASHBOARD_API_KEY;
+    if (apiKey) {
+      headers.set("Authorization", `Bearer ${apiKey}`);
+    }
+    const { getServerSession } = await import("next-auth/next");
+    const { authOptions } = await import("@/lib/auth");
+    const session = await getServerSession(authOptions);
+    if (session?.accessToken) {
+      headers.set("X-Discord-Access-Token", session.accessToken);
+    }
+    if (session?.user?.id) {
+      headers.set("X-Discord-User-Id", session.user.id);
+    }
   }
   headers.set("Content-Type", "application/json");
   try {
