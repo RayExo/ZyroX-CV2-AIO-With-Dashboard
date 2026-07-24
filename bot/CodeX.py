@@ -48,6 +48,11 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
+# SECURITY (audit C2/H12): refuse to start if critical secrets are missing or
+# still set to shipped defaults. OWNER_IDS is already enforced at config import.
+from utils.config import validate_critical_secrets
+validate_critical_secrets()
+
 # --- Configuration ---
 # IMPORTANT: Replace these with your actual channel IDs.
 SERVER_COUNT_CHANNEL_ID = 1419729255977189467  # Replace with your server count channel ID
@@ -239,6 +244,11 @@ async def delete_hook(ctx: Context, webhook_url: str = None):
     if webhook_url is None:
         return await ctx.send("Please provide the webhook URL to delete.")
 
+    from utils.safehttp import assert_safe_fetch_url
+    try:
+        assert_safe_fetch_url(webhook_url, allow_hosts={"discord.com", "discordapp.com"})
+    except ValueError:
+        return await ctx.send(f"{ERROR} Only Discord webhook URLs are permitted.")
     try:
         async with aiohttp.ClientSession() as session:
             webhook = await discord.Webhook.from_url(webhook_url, session=session)

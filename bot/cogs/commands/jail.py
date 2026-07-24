@@ -189,6 +189,7 @@ class Jail(commands.Cog):
         await ctx.send(view=CV2("✅ Success", f"{member.mention} has been unjailed."))
 
     @commands.command(name="jailhistory")
+    @commands.has_permissions(manage_roles=True)
     async def jailhistory(self, ctx, member: discord.Member):
         cursor = self.conn.execute("""
             SELECT reason, jailed_at, duration, mod_id FROM jailed

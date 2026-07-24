@@ -21,8 +21,5 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function isAdmin(userId?: string | null) {
-  if (!userId) return false;
-  const adminIds = (process.env.NEXT_PUBLIC_ADMIN_IDS || "").split(",");
-  return adminIds.includes(userId);
-}
+// NOTE: isAdmin() moved to lib/auth-utils.ts (server-only) so ADMIN_IDS is no
+// longer exposed to the browser via NEXT_PUBLIC_.

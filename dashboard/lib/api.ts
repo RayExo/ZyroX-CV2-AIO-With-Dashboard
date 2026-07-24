@@ -2,7 +2,7 @@
  * ╔══════════════════════════════════════════════════════════════════╗
  * ║                                                                  ║
  * ║   ░█▀▀░█▀█░█▀▄░█▀▀░█░█   ░█▀▄░█▀▀░█░█░█▀▀                     ║
- * ║   ░█░░░█░█░█░█░█▀▀░▄▀▄   ░█░█░█▀▀░▀▄▀░▀▀█                     ║
+ * ║   ░█░░░█░█░█░█░█▀▀░▄▀▄   ░█▀█░█▀▀░▀▄▀░▀▀█                     ║
  * ║   ░▀▀▀░▀▀▀░▀▀░░▀▀▀░▀░▀   ░▀▀░░▀▀▀░░▀░░▀▀▀                     ║
  * ║                                                                  ║
  * ║           © 2026 CodeX Devs — All Rights Reserved               ║
@@ -14,15 +14,15 @@
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
-import { 
-  BotInfo, 
-  BotStatus, 
-  GuildSummary, 
+import {
+  BotInfo,
+  BotStatus,
+  GuildSummary,
   GuildDetails,
-  PrefixConfig, 
-  AutomodConfig, 
-  TicketConfig, 
-  LevelingConfig, 
+  PrefixConfig,
+  AutomodConfig,
+  TicketConfig,
+  LevelingConfig,
   LoggingConfig,
   PrefixUpdate,
   AutomodUpdate,
@@ -38,8 +38,16 @@ import {
   AdminConfigUpdate
 } from "@/types/api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY;
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+// SECURITY (audit C1): the backend API key is SERVER-ONLY (no NEXT_PUBLIC_).
+//  - Server Components call the backend directly with the key.
+//  - Client Components call the same-origin /api/proxy route handler, which
+//    attaches the key server-side AND enforces authorization. The key value
+//    is never inlined into the client bundle.
+const isServer = typeof window === "undefined";
+const API_KEY = isServer ? process.env.DASHBOARD_API_KEY : undefined;
+const BASE_URL = isServer ? BACKEND_URL : "/api/proxy";
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -53,7 +61,7 @@ async function request<T>(
   options: RequestInit & { next?: NextFetchRequestConfig } = {}
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
-  
+
   const headers = new Headers(options.headers);
   if (API_KEY) {
     headers.set("Authorization", `Bearer ${API_KEY}`);
@@ -88,7 +96,7 @@ async function request<T>(
 }
 
 export const api = {
-  // Bot 
+  // Bot
   getBotStatus: () => request<BotStatus>("/bot/status"),
   getBotInfo: () => request<BotInfo>("/bot/info"),
 
@@ -97,38 +105,38 @@ export const api = {
   getGuildDetails: (guildId: string) => request<any>(`/guilds/${guildId}`),
   getChannels: (guildId: string) => request<DiscordChannel[]>(`/guilds/${guildId}/channels`),
   getRoles: (guildId: string) => request<DiscordRole[]>(`/guilds/${guildId}/roles`),
-  
+
   // Module Configs
   getPrefix: (guildId: string) => request<PrefixConfig>(`/guilds/${guildId}/prefix`),
-  updatePrefix: (guildId: string, prefix: string) => 
+  updatePrefix: (guildId: string, prefix: string) =>
     request<{ status: string; new_prefix: string }>(`/guilds/${guildId}/prefix`, {
       method: "POST",
       body: JSON.stringify({ prefix }),
     }),
 
   getAutomod: (guildId: string) => request<AutomodConfig>(`/guilds/${guildId}/automod`),
-  updateAutomod: (guildId: string, data: Partial<AutomodConfig>) => 
+  updateAutomod: (guildId: string, data: Partial<AutomodConfig>) =>
     request<{ status: string }>(`/guilds/${guildId}/automod`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
 
   getTickets: (guildId: string) => request<TicketConfig>(`/guilds/${guildId}/tickets`),
-  updateTickets: (guildId: string, data: any) => 
+  updateTickets: (guildId: string, data: any) =>
     request<{ status: string }>(`/guilds/${guildId}/tickets`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  
+
   getLeveling: (guildId: string) => request<LevelingConfig>(`/guilds/${guildId}/leveling`),
-  updateLeveling: (guildId: string, data: any) => 
+  updateLeveling: (guildId: string, data: any) =>
     request<{ status: string }>(`/guilds/${guildId}/leveling`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
 
   getLogging: (guildId: string) => request<LoggingConfig>(`/guilds/${guildId}/logging`),
-  updateLogging: (guildId: string, data: any) => 
+  updateLogging: (guildId: string, data: any) =>
     request<{ status: string }>(`/guilds/${guildId}/logging`, {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -137,21 +145,21 @@ export const api = {
   getLeaderboard: (guildId: string) => request<LeaderboardEntry[]>(`/guilds/${guildId}/leveling/leaderboard`),
 
   getWelcome: (guildId: string) => request<any>(`/guilds/${guildId}/welcome`),
-  updateWelcome: (guildId: string, data: any) => 
+  updateWelcome: (guildId: string, data: any) =>
     request<{ status: string }>(`/guilds/${guildId}/welcome`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
 
   getAntiNuke: (guildId: string) => request<any>(`/guilds/${guildId}/antinuke`),
-  updateAntiNuke: (guildId: string, data: any) => 
+  updateAntiNuke: (guildId: string, data: any) =>
     request<{ status: string }>(`/guilds/${guildId}/antinuke`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
 
   getVerification: (guildId: string) => request<any>(`/guilds/${guildId}/verification`),
-  updateVerification: (guildId: string, data: any) => 
+  updateVerification: (guildId: string, data: any) =>
     request<{ status: string }>(`/guilds/${guildId}/verification`, {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -233,7 +241,7 @@ export const api = {
   // Admin
   getAdminStats: () => request<AdminStats>("/admin/stats"),
   getAdminConfig: () => request<AdminConfig>("/admin/config"),
-  updateAdminConfig: (data: AdminConfigUpdate) => 
+  updateAdminConfig: (data: AdminConfigUpdate) =>
     request<{ status: string }>("/admin/config", {
       method: "PATCH",
       body: JSON.stringify(data),

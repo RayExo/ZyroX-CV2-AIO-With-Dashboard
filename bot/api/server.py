@@ -87,20 +87,21 @@ def create_app() -> FastAPI:
         for o in os.getenv("CORS_ORIGINS", "").split(",")
         if o.strip()
     ]
+    # SECURITY (audit H8): do not ship a placeholder/guessable origin. Allow
+    # localhost for local dev plus only explicitly-configured origins.
     _allowed_origins = list(dict.fromkeys([
         "http://localhost:3000",
         "https://localhost:3000",
-        "https://your-vercel-url-here.vercel.app",
         *_extra_origins,
     ]))
 
-    # Enable CORS for Next.js dashboard
+    # Enable CORS for the Next.js dashboard
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
     )
 
     # Register Routers

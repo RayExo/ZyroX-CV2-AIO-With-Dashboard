@@ -20,7 +20,7 @@ import os
 import random
 from utils.cv2 import CV2, build_container
 
-PEXELS_API_KEY = "js24mfV1bCCvgV6KfnEFvo5UnCHnATFarFnAdDrpDbczl7f0yXpjDF8x"
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 
 class ImageCommands(commands.Cog):
     def __init__(self, bot):

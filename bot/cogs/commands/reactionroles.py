@@ -71,6 +71,11 @@ class ReactionRoles(commands.Cog):
     @commands.hybrid_command(name="createrr", help="Create a reaction role.", usage="createrr <channel> <message_id> <emoji> <role>")
     @commands.has_permissions(manage_roles=True)
     async def createrr(self, ctx: Context, channel: discord.TextChannel, message_id: int, emoji: str, role: discord.Role):
+        # SECURITY (audit H22): refuse dangerous roles and roles the bot can't manage.
+        if role.position >= ctx.guild.me.top_role.position:
+            return await ctx.send(f"{CROSS} I can't manage that role (it's at or above my highest role).", ephemeral=True if ctx.interaction else False)
+        if role.permissions.administrator or role.permissions.manage_guild or role.permissions.manage_roles:
+            return await ctx.send(f"{CROSS} Reaction roles cannot grant Administrator / Manage Guild / Manage Roles.", ephemeral=True if ctx.interaction else False)
         try:
             message = await channel.fetch_message(message_id)
             await message.add_reaction(emoji)
@@ -104,6 +109,9 @@ class ReactionRoles(commands.Cog):
             member = payload.member
 
             if role and member:
+                # SECURITY (H22): re-check hierarchy / dangerous perms at grant time.
+                if role.position >= guild.me.top_role.position or role.permissions.administrator:
+                    return
                 await member.add_roles(role, reason="Reaction role added")
 
                 # Remove reaction

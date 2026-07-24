@@ -12,6 +12,7 @@
 # ║                                                                  ║
 # ╚══════════════════════════════════════════════════════════════════╝
 
+import os
 import discord
 from utils.emoji import DELETE
 from discord.ext import commands
@@ -104,7 +105,7 @@ class MapView(LayoutView):
     def update_map(self):
         if self.latitude is None or self.longitude is None:
             return
-        self.map_url = f'https://www.mapquestapi.com/staticmap/v5/map?key=E2SaL3qiTpXQ43nxZFBp0wzEnBI6pqbG&center={self.latitude},{self.longitude}&zoom={self.zoom_level}&size={self.map_size}&type={self.map_style}'
+        self.map_url = f'https://www.mapquestapi.com/staticmap/v5/map?key={os.getenv("MAPQUEST_API_KEY", "")}&center={self.latitude},{self.longitude}&zoom={self.zoom_level}&size={self.map_size}&type={self.map_style}'
         self.build_ui()
 
     async def update_embed(self, interaction: discord.Interaction):

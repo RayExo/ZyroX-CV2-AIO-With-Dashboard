@@ -32,6 +32,9 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { userCanManageGuild } from "@/lib/auth-utils";
 
 export const revalidate = 0; // Never cache any guild dashboard page
 
@@ -51,11 +54,19 @@ export default async function GuildLayout({
   let guild;
   let error = null;
 
-  try {
-    guild = await api.getGuildDetails(guildId);
-  } catch (err: any) {
-    console.error("Failed to fetch guild details:", err);
-    error = err.message || "Failed to load guild data.";
+  // SECURITY (audit C3): verify the logged-in user actually manages this guild
+  // before fetching/rendering its data. Server Components bypass the /api/proxy
+  // authorization, so the membership check must happen here.
+  const session = (await getServerSession(authOptions)) as any;
+  if (!session?.user || !(await userCanManageGuild(session.accessToken, guildId))) {
+    error = "You do not have permission to manage this server.";
+  } else {
+    try {
+      guild = await api.getGuildDetails(guildId);
+    } catch (err: any) {
+      console.error("Failed to fetch guild details:", err);
+      error = err.message || "Failed to load guild data.";
+    }
   }
 
   if (error || !guild) {

@@ -347,6 +347,12 @@ class General(commands.Cog):
     phrases = [
       "rickroll", "rick roll", "rick astley", "never gonna give you up"
     ]
+    from utils.safehttp import assert_safe_fetch_url
+    try:
+      assert_safe_fetch_url(url)
+    except ValueError:
+      raise BadArgument("That URL points to a blocked or internal target.")
+
     source = str(await (await self.aiohttp.get(
       url, allow_redirects=True)).content.read()).lower()
     rickRoll = bool((re.findall('|'.join(phrases), source,
