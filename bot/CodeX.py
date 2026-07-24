@@ -352,7 +352,13 @@ start_tunnel()
 async def main():
     async with client:
         os.system("clear")
-        await client.load_extension("jishaku")
+        # SECURITY (M1): jishaku exposes `jsk sh` (host shell) and `jsk py` (Python
+        # eval) to owners. Disabled by default in production; enable only for dev.
+        if os.getenv("JISHAKU_ENABLED", "false").lower() == "true":
+            await client.load_extension("jishaku")
+            print("[security] jishaku enabled (JISHAKU_ENABLED=true) — development mode.")
+        else:
+            print("[security] jishaku disabled (production default). Set JISHAKU_ENABLED=true to enable.")
         
         max_retries = 5
         for attempt in range(max_retries):
