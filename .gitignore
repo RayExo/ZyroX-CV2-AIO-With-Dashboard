@@ -63,4 +63,10 @@ __pycache__/
 *.zip
 *.rar
 
+# Ignore SQLite databases (runtime data — must never be committed; audit C4)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
 

@@ -25,7 +25,7 @@ import {
   LifeBuoy, ChevronDown, Bot, Shield
 } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { cn, isAdmin } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { AdminConfig } from "@/types/api";
 
@@ -40,6 +40,7 @@ export default function DashboardLayout({
   const { data: session, status } = useSession();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [globalNotification, setGlobalNotification] = useState<string | null>(null);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
   
   const bellRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -69,18 +70,27 @@ export default function DashboardLayout({
   React.useEffect(() => {
     if (status === "unauthenticated") {
       signIn("discord");
+      return;
     }
-    
-    // Fetch global notification
-    const fetchNotification = async () => {
+
+    // SECURITY (H4): resolve admin status server-side via /api/me instead of
+    // reading NEXT_PUBLIC_ADMIN_IDS from the browser bundle.
+    const fetchMe = async () => {
       try {
-        const config = await api.getAdminConfig();
-        setGlobalNotification(config.global_notification);
+        const res = await fetch("/api/me");
+        if (!res.ok) return;
+        const data = await res.json();
+        setUserIsAdmin(!!data.isAdmin);
+        // Only admins can read the broadcast through the proxied /admin/* route.
+        if (data.isAdmin) {
+          const config = await api.getAdminConfig();
+          setGlobalNotification(config.global_notification);
+        }
       } catch (err) {
-        console.error("Failed to fetch notifications:", err);
+        console.error("Failed to fetch /api/me:", err);
       }
     };
-    fetchNotification();
+    fetchMe();
   }, [status]);
 
   if (status === "loading" || status === "unauthenticated") {
@@ -142,8 +152,8 @@ export default function DashboardLayout({
     : [
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { name: "Servers", href: "/dashboard/guilds", icon: Server },
-        ...(isAdmin(session?.user?.id) 
-            ? [{ name: "Admin Panel", href: "/dashboard/admin", icon: Shield }] 
+        ...(userIsAdmin
+            ? [{ name: "Admin Panel", href: "/dashboard/admin", icon: Shield }]
             : []),
       ];
 

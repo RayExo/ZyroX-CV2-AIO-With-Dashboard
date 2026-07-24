@@ -25,7 +25,8 @@ try :
 except ImportError :
     GEMINI_AVAILABLE =False 
     genai =None 
-from datetime import datetime ,timezone ,timedelta 
+import ast
+from datetime import datetime ,timezone ,timedelta
 import asyncio 
 from typing import List ,Dict ,Optional 
 from discord import app_commands 
@@ -116,7 +117,7 @@ class TriviaScore :
 
         if result :
             current_score ,games_played ,history_str =result 
-            history =eval (history_str )if history_str else []
+            history =ast .literal_eval (history_str )if history_str else []
             new_score =current_score +score_inc 
             new_games_played =games_played +games_played_inc 
             history .append (history_entry )
@@ -146,7 +147,7 @@ class TriviaScore :
             "username":row [1 ],
             "score":row [2 ],
             "gamesPlayed":row [3 ],
-            "history":eval (row [4 ])if row [4 ]else [],
+            "history":ast .literal_eval (row [4 ])if row [4 ]else [],
             }
             for row in rows 
             ]
@@ -164,7 +165,7 @@ class TriviaScore :
                 "username":row [1 ],
                 "score":row [2 ],
                 "gamesPlayed":row [3 ],
-                "history":eval (row [4 ])if row [4 ]else [],
+                "history":ast .literal_eval (row [4 ])if row [4 ]else [],
                 }
             return None 
 
@@ -690,6 +691,11 @@ Support server: https://discord.gg/codexdev"""
             genai .configure (api_key =self .gemini_api_key )
             model =genai .GenerativeModel ('gemini-1.5-pro')
 
+            from utils .safehttp import assert_safe_fetch_url
+            try :
+                assert_safe_fetch_url (image_url )
+            except ValueError :
+                return CV2View("🖼️ Image Analysis", "That image URL is blocked or internal.")
             async with aiohttp .ClientSession ()as session :
                 async with session .get (image_url )as resp :
                     image_data =await resp .read ()
@@ -1290,6 +1296,11 @@ Support server: https://discord.gg/codexdev"""
             genai .configure (api_key =self .gemini_api_key )
             model =genai .GenerativeModel ('gemini-1.5-pro')
 
+            from utils .safehttp import assert_safe_fetch_url
+            try :
+                assert_safe_fetch_url (image_url )
+            except ValueError :
+                return CV2View("🖼️ Image Analysis", "That image URL is blocked or internal.")
             async with aiohttp .ClientSession ()as session :
                 async with session .get (image_url )as resp :
                     image_data =await resp .read ()

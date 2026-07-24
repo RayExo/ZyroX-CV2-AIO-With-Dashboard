@@ -13,6 +13,7 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 from __future__ import annotations
+import ast
 import discord
 from utils.emoji import CROSS, ICONS_WARNING, TICK
 import aiosqlite
@@ -232,7 +233,7 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
         
         if data:
-            humans = eval(data[0])
+            humans = ast.literal_eval(data[0])
             if role.id in humans:
                 view = CV2(f"{ICONS_WARNING} Access Denied", f"{role.mention} is already in human autoroles.")
             elif len(humans) >= 10:
@@ -265,7 +266,7 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
 
         if data:
-            humans = eval(data[0])
+            humans = ast.literal_eval(data[0])
             if role.id not in humans:
                 view = CV2(f"{CROSS} Error", f"{role.mention} is not in human autoroles.")
             else:
@@ -303,7 +304,7 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
         
         if data:
-            bots = eval(data[0])
+            bots = ast.literal_eval(data[0])
             if role.id in bots:
                 view = CV2(f"{ICONS_WARNING} Access Denied", f"{role.mention} is already in bot autoroles.")
             elif len(bots) >= 10:
@@ -336,7 +337,7 @@ class AutoRole(commands.Cog):
                 data = await cursor.fetchone()
 
         if data:
-            bots = eval(data[0])
+            bots = ast.literal_eval(data[0])
             if role.id not in bots:
                 view = CV2(f"{CROSS} Error", f"{role.mention} is not in bot autoroles.")
             else:

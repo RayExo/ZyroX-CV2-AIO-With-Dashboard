@@ -374,7 +374,7 @@ class VerificationView (discord .ui .View ):
                         return 
 
 
-            if verification_method not in ["button","both"]:
+            if verification_method != "button":
                 embed =discord .Embed (
                 title ="CAPTCHA Required",
                 description ="This server requires CAPTCHA verification. Please use the CAPTCHA button below.",

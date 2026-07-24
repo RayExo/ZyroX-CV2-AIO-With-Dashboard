@@ -15,6 +15,7 @@
 import discord
 from discord.ext import commands
 from discord.ui import LayoutView, TextDisplay, Separator, MediaGallery
+import os
 import random
 import aiohttp
 from discord import app_commands
@@ -24,7 +25,7 @@ from utils.cv2 import CV2, build_container
 class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.giphy_api_key = "y3KcqQTdiS0RYcpNJrWn8hFGglKqX4is"
+        self.giphy_api_key = os.getenv("GIPHY_API_KEY", "")
 
     async def fetch_giphy(self, query):
         async with aiohttp.ClientSession() as session:

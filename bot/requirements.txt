@@ -1,23 +1,26 @@
+# ── Python dependencies ─────────────────────────────────────────────────────
+# Security cleanup (audit H18): removed invalid / typo-squat / stdlib-redundant
+# entries that could pull unintended packages from PyPI:
+#   - discord           (NOT discord.py — different/abandoned package)
+#   - discord.ui        (a module inside discord.py, not a distribution)
+#   - discord.ext-context (not a valid PyPI package)
+#   - collection        (typo of stdlib `collections`; `collection` is different code)
+#   - asyncio, datetime, typing, pathlib  (all stdlib)
+#   - duplicate `Requests` (pip is case-insensitive; merged into `requests`)
+# For reproducible production installs, pin exact versions with:
+#   pip freeze > requirements.lock   &&   pip install -r requirements.lock
 Quart
-discord
 discord.py
-discord.ui
 jishaku
 mcstatus
-asyncio
 discord-ext-menus
 aiohttp
-datetime
 flask
-typing
 psutil
-collection
 requests
-pathlib
 pymongo
 wavelink>=2.0.0
 httpx
-discord.ext-context
 tasksio
 motor
 Augmentor
@@ -28,10 +31,8 @@ langdetect
 python-dotenv
 pyttsx3
 PyYAML
-Requests
 openai
 duckduckgo-search==6.3.6
-# pillow==11.0.0
 colorama
 chess
 python-dateutil
@@ -40,3 +41,4 @@ uvicorn==0.46.0
 fastapi
 slowapi
 pycloudflared
+pillow

@@ -99,7 +99,7 @@ Create a `.env.local` file in this folder:
 # ── Bot API ───────────────────────────────────────────────────────
 # Use the Cloudflare Tunnel URL from the bot's console output
 NEXT_PUBLIC_API_URL           = https://api.yourdomain.com/api/v1
-NEXT_PUBLIC_DASHBOARD_API_KEY = your_shared_api_key   # must match bot's DASHBOARD_API_KEY
+DASHBOARD_API_KEY              = your_shared_api_key   # SERVER-ONLY — must match bot's DASHBOARD_API_KEY
 
 # ── NextAuth ──────────────────────────────────────────────────────
 NEXTAUTH_URL                  = http://localhost:3000
@@ -110,7 +110,7 @@ DISCORD_CLIENT_ID             = your_discord_oauth_client_id
 DISCORD_CLIENT_SECRET         = your_discord_oauth_client_secret
 
 # ── Branding ──────────────────────────────────────────────────────
-NEXT_PUBLIC_ADMIN_IDS         = your_discord_user_id
+ADMIN_IDS                     = your_discord_user_id   # SERVER-ONLY — not shipped to the browser
 NEXT_PUBLIC_BRAND_NAME        = "ZyroX"
 NEXT_PUBLIC_BRAND_NAME_WORD   = "ZX"
 ```
@@ -130,12 +130,12 @@ Open [http://localhost:3000](http://localhost:3000)
 | Variable | Description |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | Full URL to the bot's FastAPI backend — use the Cloudflare Tunnel URL |
-| `NEXT_PUBLIC_DASHBOARD_API_KEY` | Must exactly match `DASHBOARD_API_KEY` in the bot `.env` |
+| `DASHBOARD_API_KEY` | Must exactly match `DASHBOARD_API_KEY` in the bot `.env` (**server-only**, never shipped to the browser) |
 | `NEXTAUTH_URL` | Your dashboard's public URL (Vercel domain in production) |
 | `NEXTAUTH_SECRET` | Random secret for NextAuth session signing |
 | `DISCORD_CLIENT_ID` | Discord OAuth2 client ID |
 | `DISCORD_CLIENT_SECRET` | Discord OAuth2 client secret |
-| `NEXT_PUBLIC_ADMIN_IDS` | Comma-separated Discord user IDs with admin panel access |
+| `ADMIN_IDS` | Comma-separated Discord user IDs with admin panel access (**server-only**) |
 | `NEXT_PUBLIC_BRAND_NAME` | Bot name shown in the dashboard UI |
 | `NEXT_PUBLIC_BRAND_NAME_WORD` | Short abbreviation shown in the dashboard (e.g. `ZX`) |
 
@@ -201,7 +201,7 @@ This URL is permanent — it never changes between restarts as long as the Cloud
 | Dashboard can't load data | Confirm bot is running with `API_ENABLED=true` and `NEXT_PUBLIC_API_URL` is correct |
 | CORS error in browser | Add your Vercel URL to `CORS_ORIGINS` in the bot's `.env` |
 | `NEXTAUTH_SECRET` error | Make sure `NEXTAUTH_SECRET` is set and non-empty |
-| API key rejected (401) | `NEXT_PUBLIC_DASHBOARD_API_KEY` must exactly match `DASHBOARD_API_KEY` in the bot |
+| API key rejected (401) | `DASHBOARD_API_KEY` (server-only) must exactly match `DASHBOARD_API_KEY` in the bot |
 | Tunnel URL changed | Cloudflare named tunnels always produce the same URL — check `CF_TUNNEL_TOKEN` is valid |
 
 ---

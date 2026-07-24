@@ -962,6 +962,11 @@ class Moderation(commands.Cog):
     else:
         if not icon.startswith("https://"):
             return await ctx.reply("Please provide a valid link.")
+        from utils.safehttp import assert_safe_fetch_url
+        try:
+            assert_safe_fetch_url(icon)
+        except ValueError:
+            return await ctx.reply("That image URL points to a blocked or internal target.")
         try:
             async with aiohttp.request("GET", icon) as r:
                 image_data = await r.read()
